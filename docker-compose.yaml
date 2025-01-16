@@ -1,0 +1,64 @@
+services:
+  streamlit_app:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ~/messages:/app/messages
+    depends_on:
+      - llm-model
+    ports:
+      - "8501:8501"
+    networks:
+      - chatbot_app_network
+    restart: unless-stopped
+
+  llm-model:
+    image: vllm/vllm-openai:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      - ${MODEL_TO_DEPLOY}:/app/lora
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - NUM_GPUS=${NUM_GPUS}
+      - MODEL_TO_DEPLOY=${MODEL_TO_DEPLOY}
+      - BASE_MODEL=${BASE_MODEL}
+    ports:
+      - "8000:8000"
+    ipc: host
+    command: >
+      --model ${BASE_MODEL}
+      --max-model-len 4096
+      --gpu_memory_utilization 0.7
+      --tensor-parallel-size ${NUM_GPUS}
+      --enable-lora
+      --lora-modules gym-llama=/app/lora
+    networks:
+      - chatbot_app_network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    depends_on:
+      - streamlit_app
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - chatbot_app_network
+    restart: unless-stopped
+
+networks:
+  chatbot_app_network:
+    name: chatbot_app_network
+    driver: bridge
