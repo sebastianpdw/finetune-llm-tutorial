@@ -8,7 +8,7 @@
     "delete_after_completion": false
   },
   "finetuning": {
-    "enabled": false,
+    "enabled": true,
     "use_host_hf_token": true,
     "model_name_or_path": "meta-llama/Llama-3.1-8B-Instruct",
     "dataset_csv_path": "data/datasets/train.csv",
@@ -21,7 +21,7 @@
     }
   },
   "inference": {
-    "enabled": false,
+    "enabled": true,
     "mode": "csv",
     "mode_configs": {
       "csv": {
