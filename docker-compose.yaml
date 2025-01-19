@@ -32,16 +32,16 @@ services:
       - NUM_GPUS=${NUM_GPUS}
       - MODEL_TO_DEPLOY=${MODEL_TO_DEPLOY}
       - BASE_MODEL=${BASE_MODEL}
+      - ADDITIONAL_VLLM_ARGS=${ADDITIONAL_VLLM_ARGS}
     ports:
       - "8000:8000"
     ipc: host
     command: >
       --model ${BASE_MODEL}
-      --max-model-len 4096
-      --gpu_memory_utilization 0.7
       --tensor-parallel-size ${NUM_GPUS}
       --enable-lora
       --lora-modules gym-llama=/app/lora
+      ${ADDITIONAL_VLLM_ARGS}
     networks:
       - chatbot_app_network
     restart: unless-stopped

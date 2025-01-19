@@ -123,7 +123,9 @@ class PeftTrainer:
             raise ValueError(
                 "PEFT inference_configs not set. Call _load_peft_configs first."
             )
-
+        lg.debug(
+            f"Loading model and tokenizer with 8bit: {load_in_8bit}, 4bit: {load_in_4bit}"
+        )
         model = AutoModelForCausalLM.from_pretrained(
             self.model_name_or_path,
             device_map="auto",
@@ -450,4 +452,6 @@ if __name__ == "__main__":
         per_device_train_batch_size=finetuning_config.get(
             "batch_size", DEFAULT_BATCH_SIZE
         ),
+        load_model_in_4bit=finetuning_config.get("load_model_in_4bit", False),
+        load_model_in_8bit=finetuning_config.get("load_model_in_8bit", False),
     )

@@ -216,7 +216,7 @@ class HyperstackManager:
             str: Private SSH key
         """
         if keypair_name is None:
-            keypair_name = DEFAULT_KEYPAIR_NAME
+            keypair_name = f"{DEFAULT_KEYPAIR_NAME}-{self.environment_name}"
 
         lg.debug(f"Fetching private SSH key for keypair: {keypair_name}")
         private_key_path = self.key_dir / f"{keypair_name}.pem"
@@ -376,7 +376,7 @@ class HyperstackManager:
         """
         lg.debug(f"Getting or creating VM with flavor: {flavor_name}")
         if keypair_name is None:
-            keypair_name = DEFAULT_KEYPAIR_NAME
+            keypair_name = f"{DEFAULT_KEYPAIR_NAME}-{self.environment_name}"
         if image_name is None:
             image_name = DEFAULT_IMAGE_NAME
         if security_rules is None:

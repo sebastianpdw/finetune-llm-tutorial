@@ -103,8 +103,14 @@ def get_run_finetuning_command(
     # Wait 5 seconds for the containers to stop
     sleep 5
 
+
+    echo "Started finetuning"
     export PYTHONPATH=$PYTHONPATH:/home/ubuntu/src
-    .venv/bin/python3 src/finetuning/finetuning_peft.py --config_path {config_path}"""
+    .venv/bin/python3 src/finetuning/finetuning_peft.py --config_path {config_path}
+
+    echo "Finetuning completed"
+    
+    """
 
     return clean_cmd(cmd)
 
@@ -147,16 +153,23 @@ def get_deploy_chatbot_app_command(
     model_to_deploy=None,
     base_model=None,
     environment_vars_dict=None,
+    additional_vllm_args=None,
 ):
     cmd = "echo 'Deploying chatbot app...'"
     if environment_vars_dict:
         cmd += add_environment_vars_cmd(environment_vars_dict)
+
+    if not additional_vllm_args:
+        additional_vllm_cmd = ""
+    else:
+        additional_vllm_cmd = " ".join(additional_vllm_args)
 
     cmd += clean_cmd(f"""
     # Set some variables
     export NUM_GPUS=$(nvidia-smi -L | wc -l)
     export MODEL_TO_DEPLOY={model_to_deploy}
     export BASE_MODEL={base_model}
+    export ADDITIONAL_VLLM_ARGS="{additional_vllm_cmd}"
 
     # Print the variables
     echo "Number of GPUs: $NUM_GPUS"

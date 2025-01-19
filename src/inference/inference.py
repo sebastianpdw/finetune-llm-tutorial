@@ -15,7 +15,7 @@ from utils.io import read_json, get_latest_run_dir, get_model_path_from_run_dir
 
 
 class FinetunedLLM:
-    DEFAULT_TEMPERATURE = 1
+    DEFAULT_TEMPERATURE = 0.5
     DEFAULT_MAX_LENGTH = 500
 
     SUPPORTED_MODES = ["csv", "text"]

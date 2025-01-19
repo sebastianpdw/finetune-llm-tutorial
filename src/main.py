@@ -31,7 +31,11 @@ os.makedirs(LOCAL_LOGS_DIR, exist_ok=True)
 
 
 def deploy_vm(
-    environment_name: str, vm_name: str, flavor_name: str, use_fixed_ips: bool = False
+    environment_name: str,
+    vm_name: str,
+    flavor_name: str,
+    use_fixed_ips: bool = False,
+    image_name: str = None,
 ) -> Tuple[VMManager, HyperstackManager]:
     """
     Deploys a VM using HyperstackManager and initializes VMManager.
@@ -41,13 +45,17 @@ def deploy_vm(
         vm_name (str): The VM name.
         flavor_name (str): The flavor name.
         use_fixed_ips (bool): Whether to use fixed IPs. Defaults to False.
+        image_name (str): The image name. Defaults to None.
 
     Returns:
         Tuple[VMManager, HyperstackManager]: The VMManager and HyperstackManager instances.
     """
     hyperstack_manager = HyperstackManager(environment_name=environment_name)
     vm_id = hyperstack_manager.get_or_create_vm(
-        vm_name=vm_name, flavor_name=flavor_name, enable_public_ip=not use_fixed_ips
+        vm_name=vm_name,
+        flavor_name=flavor_name,
+        enable_public_ip=not use_fixed_ips,
+        image_name=image_name,
     )
     hyperstack_manager.wait_for_vm_active(vm_id)
     ip_key = "fixed_ip" if use_fixed_ips else "floating_ip"
@@ -172,6 +180,7 @@ def deploy_chatbot_app(
         model_to_deploy=model_to_deploy,
         base_model=base_model,
         environment_vars_dict=env_vars,
+        additional_vllm_args=app_deployment_config.get("additional_vllm_args"),
     )
     vm_manager.run_command(deploy_cmd)
 
@@ -192,6 +201,7 @@ def deploy_and_setup_vm(deployment_config: Dict) -> Tuple[VMManager, HyperstackM
             deployment_config["environment_name"],
             deployment_config["vm_name"],
             deployment_config["flavor_name"],
+            image_name=deployment_config.get("image_name", None),
         )
         setup_vm(vm_manager)
     else:

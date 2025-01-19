@@ -1,16 +1,18 @@
 {
-  "run_name": "meta-llama-3-1-8b-instruct",
+  "run_name": "meta-llama-3-1-8b-instruct-4bit",
   "hyperstack_deployment": {
     "enabled": true,
-    "environment_name": "default-CANADA-1",
-    "vm_name": "finetuning-vm",
-    "flavor_name": "n3-L40x1",
+    "environment_name": "default-NORWAY-1",
+    "vm_name": "finetuning-norway-vm",
+    "flavor_name": "n3-RTX-A4000x1",
+    "image_name": "Ubuntu 22.04 LTS Server R535 CUDA 12.2 with Docker",
     "delete_after_completion": false
   },
   "finetuning": {
     "enabled": true,
     "use_host_hf_token": true,
-    "model_name_or_path": "meta-llama/Llama-3.1-8B-Instruct",
+    "model_name_or_path": "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
+    "load_model_in_4bit": true,
     "dataset_csv_path": "data/datasets/train.csv",
     "num_train_epochs": 10,
     "peft": "lora",
@@ -39,8 +41,12 @@
     "enabled": true,
     "use_host_hf_token": true,
     "model_run_dir": "latest",
-    "base_model": "meta-llama/Llama-3.1-8B-Instruct",
-    "gpu_memory_utilization": 0.7,
-    "additional_vllm_args": ["--max-model-len 4096"]
+    "base_model": "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
+    "additional_vllm_args": [
+      "--max-model-len 4096",
+      "--gpu_memory_utilization 0.6",
+      "--quantization bitsandbytes",
+      "--load-format bitsandbytes"
+    ]
   }
 }

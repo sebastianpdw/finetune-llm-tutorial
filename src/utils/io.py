@@ -13,8 +13,11 @@ def read_json(json_path: str) -> Dict:
     Returns:
         Dict: Contents of the JSON file.
     """
-    with open(json_path, "r") as f:
-        json_dict = json.load(f)
+    try:
+        with open(json_path, "r") as f:
+            json_dict = json.load(f)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"File not found: {os.path.abspath(json_path)}")
     return json_dict
 
 
