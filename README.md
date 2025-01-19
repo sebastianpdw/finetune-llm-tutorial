@@ -14,11 +14,11 @@
 
 ## Introduction
 
-This project provides a comprehensive framework for building, fine-tuning, and deploying custom chatbots using affordable cloud infrastructure. Whether you're a researcher, developer, or AI enthusiast, this guide streamlines the process from data generation to app deployment.
+This project provides a comprehensive framework for building, fine-tuning, and deploying custom chatbots using GPU cloud infrastructure. Whether you're a researcher, developer, or AI enthusiast, this guide streamlines the process from data generation to app deployment.
 
 Here's why this solution stands out:
 
-1. **Cost-effective**: Build and deploy LLMs without spending thousands on cloud compute costs, making it accessible for anyone just getting started
+1. **Quick and easy**: for anyone that is just getting started with LLMs and wants to get started fast
 2. **End-to-end workflow**: Get hands-on guidance for the complete journey, from dataset creation to hosting your chatbot app
 3. **Automated setup**: Focus on building your application with our automated, configurable codebase that handles the heavy lifting
 
@@ -29,7 +29,7 @@ Key features include:
 - 🚀 **Efficient fine-tuning**: Optimize model training with LoRA fine-tuning for faster, cheaper development
 - 🔄 **Automated deployment**: Deploy your chatbot using vLLM for inference and Streamlit for the interface
 
-The entire solution is open-source and designed for easy customization. Whether you're building a proof of concept or a production system, this framework provides everything needed to get your LLM project up and running quickly and affordably.
+The entire solution is open-source and designed for easy customization. Whether you're building a proof of concept or a production system, this framework provides everything needed to get your LLM project up and running quickly.
 
 At the end of this tutorial, you will have a fully functional chatbot application that can be accessed through a web interface. The chatbot will be powered by a fine-tuned LLM model, allowing you to interact with it in real-time. See the screenshot below for a preview of the chatbot interface.
 
