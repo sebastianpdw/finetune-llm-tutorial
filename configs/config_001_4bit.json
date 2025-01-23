@@ -5,7 +5,7 @@
     "environment_name": "default-NORWAY-1",
     "vm_name": "finetuning-norway-vm",
     "flavor_name": "n3-RTX-A4000x1",
-    "image_name": "Ubuntu 22.04 LTS Server R535 CUDA 12.2 with Docker",
+    "image_name": "Ubuntu Server 22.04 LTS R535 CUDA 12.2 with Docker",
     "delete_after_completion": false
   },
   "finetuning": {
