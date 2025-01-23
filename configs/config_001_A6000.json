@@ -1,0 +1,46 @@
+{
+  "run_name": "meta-llama-3-1-8b-instruct",
+  "hyperstack_deployment": {
+    "enabled": true,
+    "environment_name": "default-CANADA-1",
+    "vm_name": "finetuning-vm",
+    "flavor_name": "n3-RTX-A6000x1",
+    "delete_after_completion": false
+  },
+  "finetuning": {
+    "enabled": true,
+    "use_host_hf_token": true,
+    "model_name_or_path": "meta-llama/Llama-3.1-8B-Instruct",
+    "dataset_csv_path": "data/datasets/train.csv",
+    "num_train_epochs": 10,
+    "peft": "lora",
+    "peft_hyperparams": {
+      "r": 8,
+      "lora_alpha": 32,
+      "lora_dropout": 0.2
+    }
+  },
+  "inference": {
+    "enabled": true,
+    "mode": "csv",
+    "mode_configs": {
+      "csv": {
+        "input_path": "data/datasets/test.csv",
+        "input_column": "user",
+        "output_column": "response"
+      }
+    },
+    "model_hyperparams": {
+      "temperature": 0.5,
+      "max_length": 500
+    }
+  },
+  "app_deployment": {
+    "enabled": true,
+    "use_host_hf_token": true,
+    "model_run_dir": "latest",
+    "base_model": "meta-llama/Llama-3.1-8B-Instruct",
+    "gpu_memory_utilization": 0.7,
+    "additional_vllm_args": ["--max-model-len 4096"]
+  }
+}
