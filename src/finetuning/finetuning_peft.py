@@ -40,6 +40,7 @@ DEFAULT_PEFT_HYPER_PARAMS = {
 
 DEFAULT_BATCH_SIZE = 8
 DEFAULT_NUM_EPOCHS = 20
+DEFAULT_LEARNING_RATE = 5e-5
 
 DEFAULT_RUNS_BASE_DIR = "./results/runs"
 
@@ -296,6 +297,8 @@ class PeftTrainer:
         num_epochs: int = 20,
         early_stopping: bool = True,
         per_device_train_batch_size: int = 8,
+        learning_rate: float = DEFAULT_LEARNING_RATE,
+        gradient_accumulation_steps: int = 1,
     ) -> None:
         """Set up the trainer with the specified parameters.
 
@@ -306,6 +309,8 @@ class PeftTrainer:
             num_epochs (int): The number of training epochs.
             early_stopping (bool): Whether to use early stopping.
             per_device_train_batch_size (int): The batch size per device for training.
+            learning_rate (float): The learning rate for training.
+            gradient_accumulation_steps (int): The number of gradient accumulation steps.
         """
         lg.debug("Setting up trainer ...")
         output_dir = os.path.join(self.output_dir, "training_output")
@@ -321,6 +326,8 @@ class PeftTrainer:
             load_best_model_at_end=True,
             per_device_train_batch_size=per_device_train_batch_size,
             report_to=[],
+            learning_rate=learning_rate,
+            gradient_accumulation_steps=gradient_accumulation_steps,
         )
 
         if early_stopping:
@@ -381,6 +388,8 @@ class PeftTrainer:
         per_device_train_batch_size: int = 8,
         load_model_in_8bit: bool = False,
         load_model_in_4bit: bool = False,
+        learning_rate: float = 5e-5,
+        gradient_accumulation_steps: int = 1,
     ) -> None:
         """Run the training and evaluation process.
 
@@ -389,9 +398,11 @@ class PeftTrainer:
             per_device_train_batch_size (int): The batch size per device for training.
             load_model_in_8bit (bool): Whether to load the model in 8-bit precision.
             load_model_in_4bit (bool): Whether to load the model in 4-bit precision.
+            learning_rate (float): The learning rate for training.
+            gradient_accumulation_steps (int): The number of gradient accumulation steps.
         """
         lg.debug(
-            f"Starting training with {num_epochs} epochs, and batch size: {per_device_train_batch_size}"
+            f"Starting training with {num_epochs} epochs, batch size: {per_device_train_batch_size}, learning rate: {learning_rate}"
         )
         model, tokenizer = self._load_model_and_tokenizer(
             load_in_8bit=load_model_in_8bit, load_in_4bit=load_model_in_4bit
@@ -403,6 +414,8 @@ class PeftTrainer:
             test_dataset,
             num_epochs=num_epochs,
             per_device_train_batch_size=per_device_train_batch_size,
+            learning_rate=learning_rate,
+            gradient_accumulation_steps=gradient_accumulation_steps,
         )
         self.train_and_evaluate()
         self.save_model(model)
@@ -454,4 +467,8 @@ if __name__ == "__main__":
         ),
         load_model_in_4bit=finetuning_config.get("load_model_in_4bit", False),
         load_model_in_8bit=finetuning_config.get("load_model_in_8bit", False),
+        learning_rate=finetuning_config.get("learning_rate", DEFAULT_LEARNING_RATE),
+        gradient_accumulation_steps=finetuning_config.get(
+            "gradient_accumulation_steps", 1
+        ),
     )

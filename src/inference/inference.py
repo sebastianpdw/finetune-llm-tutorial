@@ -64,7 +64,10 @@ class FinetunedLLM:
         Returns:
             str: The assistant's generated response.
         """
-        chat = [{"role": "user", "content": user_message}]
+        chat = [
+            {"role": "system", "content": ""},
+            {"role": "user", "content": user_message},
+        ]
         output = self.pipe(
             chat,
             temperature=temperature,

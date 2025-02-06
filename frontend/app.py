@@ -15,7 +15,9 @@ DEFAULT_API_CHAT_COMPLETIONS_URL = "http://llm-model:8000/v1/chat/completions"
 ASSISTANT_AVATAR_IMG_PATH = "media/avatar.png"
 
 
-st.set_page_config(layout="wide", page_title="Lex Llama")
+st.set_page_config(
+    layout="wide", page_title="Lex Llama - Your AI Fitness Motivation Coach"
+)
 
 st.markdown(
     """
@@ -290,7 +292,7 @@ def main(api_url=None, model_name=None):
         st.session_state.assistant_configs = DEFAULT_ASSISTANT_CONFIGS.copy()
 
     # Disabled for now, but can be enabled to show parameter controls
-    show_parameter_controls()
+    # show_parameter_controls()
 
     show_banner()
 

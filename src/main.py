@@ -36,6 +36,7 @@ def deploy_vm(
     flavor_name: str,
     use_fixed_ips: bool = False,
     image_name: str = None,
+    keypair_name: str = None,
 ) -> Tuple[VMManager, HyperstackManager]:
     """
     Deploys a VM using HyperstackManager and initializes VMManager.
@@ -46,6 +47,7 @@ def deploy_vm(
         flavor_name (str): The flavor name.
         use_fixed_ips (bool): Whether to use fixed IPs. Defaults to False.
         image_name (str): The image name. Defaults to None.
+        keypair_name (str): The keypair name. Defaults to None.
 
     Returns:
         Tuple[VMManager, HyperstackManager]: The VMManager and HyperstackManager instances.
@@ -56,6 +58,7 @@ def deploy_vm(
         flavor_name=flavor_name,
         enable_public_ip=not use_fixed_ips,
         image_name=image_name,
+        keypair_name=keypair_name,
     )
     hyperstack_manager.wait_for_vm_active(vm_id)
     ip_key = "fixed_ip" if use_fixed_ips else "floating_ip"
@@ -202,6 +205,7 @@ def deploy_and_setup_vm(deployment_config: Dict) -> Tuple[VMManager, HyperstackM
             deployment_config["vm_name"],
             deployment_config["flavor_name"],
             image_name=deployment_config.get("image_name", None),
+            keypair_name=deployment_config.get("keypair_name", None),
         )
         setup_vm(vm_manager)
     else:
