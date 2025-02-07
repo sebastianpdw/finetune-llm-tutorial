@@ -47,7 +47,6 @@
     "use_host_hf_token": true,
     "model_run_dir": "latest",
     "base_model": "unsloth/Qwen2.5-14B-Instruct-bnb-4bit",
-    "note": "# 1440 max length for gpu mem utilization 0.7",
     "additional_vllm_args": [
       "--max-model-len 4096",
       "--gpu_memory_utilization 0.8",
