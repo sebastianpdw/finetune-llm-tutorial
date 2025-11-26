@@ -4,12 +4,11 @@ import time
 from typing import List, Optional, Tuple
 from pathlib import Path
 import hyperstack
-from hyperstack.rest import ApiException
-from hyperstack.models import (
-    CreateInstancesPayload,
-    CreateSecurityRulePayload,
-    ImportKeypairPayload,
-)
+from hyperstack.configuration import Configuration
+from hyperstack.exceptions import ApiException
+from hyperstack.models.create_instances_payload import CreateInstancesPayload
+from hyperstack.models.create_security_rule_payload import CreateSecurityRulePayload
+from hyperstack.models.import_keypair_payload import ImportKeypairPayload
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from loguru import logger as lg
@@ -53,8 +52,8 @@ class HyperstackManager:
 
     def __init__(
         self,
-        environment_name: str = None,
-        key_dir=None,
+        environment_name: Optional[str] = None,
+        key_dir: Optional[str] = None,
     ):
         """
         Initialize HyperstackManager with API client.
@@ -76,7 +75,7 @@ class HyperstackManager:
             )
 
         self.environment_name = environment_name
-        configuration = hyperstack.Configuration(
+        configuration = Configuration(
             host=os.environ.get("HYPERSTACK_API_ADDRESS"),
         )
 
@@ -159,10 +158,16 @@ class HyperstackManager:
 
             # Check if keypair exists in API
             try:
-                keypairs = keypair_api.list_key_pairs()
-                existing_keypair = next(
-                    (kp for kp in keypairs.keypairs if kp.name == keypair_name), None
-                )
+                try:
+                    keypairs = keypair_api.list_key_pairs()
+                    existing_keypair = next(
+                        (kp for kp in keypairs.keypairs if kp.name == keypair_name),
+                        None,
+                    )
+                except Exception as e:
+                    lg.error(f"Failed to list keypairs: {e}")
+                    lg.warning("Assuming keypair exists in API")
+                    existing_keypair = True
                 if existing_keypair:
                     # If keypair exists in API, check for local key file
                     if key_path.exists():
@@ -208,7 +213,9 @@ class HyperstackManager:
             except ApiException as e:
                 raise Exception(f"Failed to create keypair: {e}")
 
-    def get_private_ssh_key(self, keypair_name=None) -> Tuple[str, str]:
+    def get_private_ssh_key(
+        self, keypair_name: Optional[str] = None
+    ) -> Tuple[str, str]:
         """
         Fetch private SSH key from local filesystem.
 
@@ -243,9 +250,7 @@ class HyperstackManager:
         with self.api_client as api_client:
             api_instance = hyperstack.VirtualMachineApi(api_client)
             try:
-                response = api_instance.list_virtual_machines(
-                    environment=self.environment_name
-                )
+                response = api_instance.list_vms(environment=self.environment_name)
                 vm_list = [
                     {
                         "name": vm.name,
@@ -261,7 +266,7 @@ class HyperstackManager:
             except ApiException as e:
                 raise Exception(f"Failed to list VMs: {e}")
 
-    def get_vm_from_id(self, vm_id: str) -> dict:
+    def get_vm_from_id(self, vm_id: int) -> dict:
         """
         Get details of a single virtual machine.
 
@@ -278,7 +283,7 @@ class HyperstackManager:
         with self.api_client as api_client:
             api_instance = hyperstack.VirtualMachineApi(api_client)
             try:
-                response = api_instance.retrieve_virtual_machine_details(vm_id)
+                response = api_instance.get_vm(vm_id)
                 return response.model_dump()["instance"]
             except ApiException as e:
                 raise Exception(f"Failed to get VM details: {e}")
@@ -310,12 +315,12 @@ class HyperstackManager:
         with self.api_client as api_client:
             api_instance = hyperstack.VirtualMachineApi(api_client)
             try:
-                response = api_instance.retrieve_virtual_machine_details(vm_id)
+                response = api_instance.get_vm(vm_id)
                 return response.model_dump()["instance"]
             except ApiException as e:
                 raise Exception(f"Failed to get VM details: {e}")
 
-    def get_vm_details_dict(self, vm_ids: List[str]) -> List[dict]:
+    def get_vm_details_dict(self, vm_ids: List[int]) -> dict:
         """
         Get details of multiple virtual machines.
 
@@ -346,14 +351,14 @@ class HyperstackManager:
         self,
         vm_name: str,
         flavor_name: str,
-        keypair_name: str = None,
-        image_name: str = None,
+        keypair_name: Optional[str] = None,
+        image_name: Optional[str] = None,
         enable_public_ip: bool = True,
         labels: Optional[List[str]] = None,
         security_rules: Optional[List[CreateSecurityRulePayload]] = None,
         max_retries: int = 10,
         retry_interval: int = 10,
-    ) -> str:
+    ) -> int:
         """
         Create a single VM with specified parameters.
 
@@ -407,7 +412,7 @@ class HyperstackManager:
             api_instance = hyperstack.VirtualMachineApi(api_client)
             for attempt in range(max_retries):
                 try:
-                    response = api_instance.create_virtual_machines(payload)
+                    response = api_instance.create_vms(payload)
                     vm_id = response.instances[0].id
                     lg.debug(f"Successfully created VM with ID: {vm_id}")
                     return vm_id
@@ -425,7 +430,7 @@ class HyperstackManager:
                         )
 
     def wait_for_vm_active(
-        self, vm_id: str, max_status_retries: int = 60, retry_interval: int = 10
+        self, vm_id: int, max_status_retries: int = 60, retry_interval: int = 10
     ) -> bool:
         """
         Wait for a VM to become active.
@@ -458,15 +463,15 @@ class HyperstackManager:
         self,
         vm_name: str,
         flavor_name: str,
-        keypair_name: str = None,
-        image_name: str = None,
+        keypair_name: Optional[str] = None,
+        image_name: Optional[str] = None,
         enable_public_ip: bool = True,
         labels: Optional[List[str]] = None,
         security_rules: Optional[List[CreateSecurityRulePayload]] = None,
         max_creation_retries: int = 3,
         max_status_retries: int = 60,
         retry_interval: int = 10,
-    ) -> Optional[str]:
+    ) -> Optional[int]:
         """
         Create a single VM and wait for it to become active, with retries.
         """
@@ -513,18 +518,18 @@ class HyperstackManager:
 
     def wait_for_ips_available(
         self,
-        vm_id_or_ids: Union[str, int, List[str]],
+        vm_id_or_ids: Union[int, List[int]],
         ip_key: str,
         vm_details_dict: Optional[dict] = None,
         max_retries: int = 10,
         retry_interval: int = 20,
     ):
-        if isinstance(vm_id_or_ids, str) or isinstance(vm_id_or_ids, int):
+        if isinstance(vm_id_or_ids, int):
             vm_ids = [vm_id_or_ids]
         elif isinstance(vm_id_or_ids, list):
             vm_ids = vm_id_or_ids
         else:
-            raise ValueError("'vm_id_or_ids' must be a string or a list of strings")
+            raise ValueError("'vm_id_or_ids' must be an integer or a list of integers")
 
         # Get VM details if not passed
         if vm_details_dict is None:
@@ -552,11 +557,11 @@ class HyperstackManager:
         self,
         vm_names: List[str],
         flavor_names: List[str],
-        keypair_name: str = None,
-        image_name: str = None,
+        keypair_name: Optional[str] = None,
+        image_name: Optional[str] = None,
         enable_public_ip: bool = True,
         labels: Optional[List[str]] = None,
-    ) -> List[str]:
+    ) -> List[int]:
         """
         Create multiple VMs concurrently using threading.
 
@@ -645,7 +650,7 @@ class HyperstackManager:
         )
         return successful_vm_ids
 
-    def delete_vm(self, vm_id: str):
+    def delete_vm(self, vm_id: int):
         """
         Delete a virtual machine.
 
@@ -662,7 +667,7 @@ class HyperstackManager:
                 lg.error(f"Failed to delete VM {vm_id}: {e}")
                 raise
 
-    def delete_multiple_vms(self, vm_ids: List[str]) -> List[str]:
+    def delete_multiple_vms(self, vm_ids: List[int]) -> List[int]:
         """
         Delete multiple VMs concurrently using threading.
 
@@ -697,7 +702,7 @@ class HyperstackManager:
         )
         return successful_deletions
 
-    def hibernate_vm(self, vm_id: str):
+    def hibernate_vm(self, vm_id: int):
         """
         Hibernate a virtual machine.
 
